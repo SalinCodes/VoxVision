@@ -1,0 +1,310 @@
+:root {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #1a1a1a;
+  --accent-purple: #6c5ce7;
+  --accent-teal: #00cec9;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --gradient: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-teal) 100%);
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Poppins', sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+h2, h3 {
+  color: var(--text-primary);
+  margin: 1.5rem 0;
+  position: relative;
+}
+
+h2::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 60px;
+  height: 3px;
+  background: var(--gradient);
+  border-radius: 2px;
+}
+
+.header-block {
+  background: var(--bg-secondary);
+  padding: 1.5rem;
+  margin: 1rem 0;
+  border-radius: 12px;
+  border: 1px solid rgba(108, 92, 231, 0.1);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  animation: blockEntrance 0.6s ease-out;
+}
+
+.header-block::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(108, 92, 231, 0.1),
+    transparent
+  );
+  transition: 0.6s;
+}
+
+.header-block:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(108, 92, 231, 0.15);
+}
+
+.header-block:hover::before {
+  left: 100%;
+}
+
+#status {
+  background: var(--bg-secondary);
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--accent-teal);
+  font-weight: 600;
+  position: relative;
+  animation: pulseGlow 2s infinite;
+}
+
+.results-block, .activity-log {
+  background: var(--bg-secondary);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: 12px;
+  border: 1px solid rgba(108, 92, 231, 0.05);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.activity-log {
+  background: rgba(26, 26, 26, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(108, 92, 231, 0.1);
+}
+
+#debugLog {
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.recording-glow {
+  animation: recordingPulse 1.5s infinite;
+  border-left: 4px solid var(--accent-teal) !important;
+}
+
+.listening-mode {
+  background: rgba(108, 92, 231, 0.1) !important;
+  border: 1px solid var(--accent-purple) !important;
+  transition: all 0.3s ease;
+}
+
+.log-entry {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(108, 92, 231, 0.1);
+  transition: background 0.2s ease;
+}
+
+.log-entry:hover {
+  background: rgba(108, 92, 231, 0.05);
+}
+
+/* Results Section Structure */
+.results-container {
+  display: grid;
+  gap: 1.2rem;
+  margin: 2rem 0;
+}
+
+.result-card {
+  background: var(--bg-secondary);
+  padding: 1.5rem;
+  border-radius: 10px;
+  border-left: 4px solid var(--accent-purple);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+.result-card:hover {
+  transform: translateX(8px);
+}
+
+.result-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    transparent,
+    rgba(108, 92, 231, 0.05),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* Individual Result Items */
+.recognized-text-block {
+  padding: 1rem;
+  margin: 1rem 0;
+  background: rgba(16, 16, 16, 0.4);
+  border-radius: 8px;
+  border: 1px dashed var(--accent-teal);
+}
+
+.intent-display {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  background: rgba(108, 92, 231, 0.15);
+  border-radius: 20px;
+  font-weight: 600;
+  color: var(--accent-teal);
+  margin-top: 1rem;
+  font-size: 0.9em;
+  text-transform: uppercase;
+}
+
+.intent-display::before {
+  content: '🔍';
+  margin-right: 0.6rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 206, 201, 0.2));
+}
+
+/* Audio Player Customization */
+.audio-block {
+  background: var(--gradient);
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin-top: 1.5rem;
+  animation: audioEntrance 0.6s ease-out;
+}
+
+audio {
+  width: 100%;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+}
+
+audio::-webkit-media-controls-panel {
+  background: rgba(16, 16, 16, 0.9) !important;
+  border-radius: 8px;
+}
+
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-mute-button {
+  background-color: var(--accent-teal);
+  border-radius: 50%;
+}
+
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+  color: var(--text-primary) !important;
+}
+
+/* Animations */
+@keyframes blockEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(108, 92, 231, 0.2);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(108, 92, 231, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(108, 92, 231, 0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes audioEntrance {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes recordingPulse {
+  0% { box-shadow: 0 0 0 0 rgba(0, 206, 201, 0.4); }
+  70% { box-shadow: 0 0 0 12px rgba(0, 206, 201, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 206, 201, 0); }
+}
+
+/* Modern scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-purple);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-teal);
+}
+
+/* Dynamic Text Animation */
+.recognized-text {
+  display: inline-block;
+  position: relative;
+  padding-bottom: 0.3rem;
+}
+
+.recognized-text::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent-teal);
+  transition: width 0.4s ease;
+}
+
+.result-card:hover .recognized-text::after {
+  width: 100%;
+}

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="static/style.css">
+    <title>Vox Vision</title>
+    <style>
+      /* Add these custom enhancements */
+      .recording-glow {
+        animation: recordingPulse 1.5s infinite;
+        border-left: 4px solid var(--accent-teal) !important;
+      }
+      
+      .listening-mode {
+        background: rgba(108, 92, 231, 0.1) !important;
+        border: 1px solid var(--accent-purple) !important;
+        transition: all 0.3s ease;
+      }
+  
+      #debugLog {
+        background: rgba(16, 16, 16, 0.95) !important;
+        border: 1px solid rgba(108, 92, 231, 0.2) !important;
+        border-radius: 8px !important;
+        padding: 1.2rem !important;
+        font-family: 'Fira Code', monospace;
+        font-size: 0.9em;
+        color: var(--text-secondary) !important;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+      }
+  
+      .log-entry {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(108, 92, 231, 0.1);
+        transition: background 0.2s ease;
+      }
+  
+      .log-entry:hover {
+        background: rgba(108, 92, 231, 0.05);
+      }
+  
+      @keyframes recordingPulse {
+        0% { box-shadow: 0 0 0 0 rgba(0, 206, 201, 0.4); }
+        70% { box-shadow: 0 0 0 12px rgba(0, 206, 201, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(0, 206, 201, 0); }
+      }
+    </style>
+  </head>
+<body>
+  <h1>Vox Vision</h1>
+  <div id="status" class="status">Status: Waiting for input...</div>
+
+  <h3>Results:</h3>
+  <div class="results-container">
+    <div class="result-card">
+      <h4>Recognized Speech</h4>
+      <div class="recognized-text-block">
+        <p class="recognized-text" id="recognizedText">-</p>
+      </div>
+      
+      <h4>Intent Analysis</h4>
+      <div class="intent-display" id="intent">-</div>
+    </div>
+  
+    <div class="audio-block">
+      <audio id="audioPlayer" controls hidden></audio>
+    </div>
+  </div>
+
+  <h3>Activity Log:</h3>
+  <pre id="debugLog"></pre>
+
+  <script src="https://cdn.socket.io/4.5.1/socket.io.min.js"></script>
+  <script>
+    // Update the API_BASE to use dynamic detection
+    const API_BASE = window.location.hostname === "localhost" 
+      ? "http://localhost:5000" 
+      : "https://f81d-120-89-104-31.ngrok-free.app";
+    
+    const socket = io(API_BASE);
+
+    // Add this function to check server status
+    function checkServerStatus() {
+      fetch(`${API_BASE.replace('socket.io', '')}/status`)
+        .then(response => response.json())
+        .then(data => {
+          logDebug(`✅ Server status: ${data.status}`);
+        })
+        .catch(error => {
+          logDebug(`❌ Server status check failed: ${error}`);
+        });
+    }
+
+    // Call this on page load
+    setTimeout(checkServerStatus, 1000);
+
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+
+    const statusElement = document.getElementById('status');
+    const debugLog = document.getElementById('debugLog');
+    const audioPlayer = document.getElementById('audioPlayer');
+
+    function updateStatus(message, className = '') {
+      statusElement.textContent = `Status: ${message}`;
+      statusElement.className = `status ${className}`;
+    }
+
+    function logDebug(message) {
+      const timestamp = new Date().toLocaleTimeString();
+      debugLog.innerHTML += `[${timestamp}] ${message}\n`;
+      debugLog.scrollTop = debugLog.scrollHeight;
+    }
+
+    function processVoiceCommand(transcript) {
+      const cleanTranscript = transcript.toLowerCase().trim();
+      if (cleanTranscript === 'start recording' && !isRecording) {
+        startRecording();
+        return true;
+      }
+      if (cleanTranscript === 'stop recording' && isRecording) {
+        stopRecording();
+        return true;
+      }
+      // Check for 'reload' command
+      if (cleanTranscript === 'reload') {
+      logDebug("🔄 Reloading page...");
+      window.location.reload();
+      return true;
+      }
+      // Return false if no known command is matched
+      return false;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event) => {
+      let interimTranscript = '';
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          document.getElementById("recognizedText").textContent = transcript;
+          logDebug(`📝 Recognized Text: ${transcript}`);
+          if (processVoiceCommand(transcript)) return;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+      if (interimTranscript) {
+        updateStatus(`Heard: ${interimTranscript}`, 'listening');
+      }
+    };
+
+    recognition.onerror = (event) => {
+      logDebug(`⚠️ Recognition error: ${event.error}`);
+      if (event.error === "network") {
+        logDebug("🔄 Restarting speech recognition...");
+        recognition.stop();
+        setTimeout(() => recognition.start(), 1000);
+      }
+    };
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        let mimeType = "audio/mp4";  
+
+        mediaRecorder = new MediaRecorder(stream, { mimeType });
+        audioChunks = [];
+
+        mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            audioChunks.push(event.data);
+          }
+        };
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: mimeType });
+          const reader = new FileReader();
+          reader.readAsDataURL(audioBlob);
+          reader.onloadend = () => {
+            const base64Audio = reader.result.split(",")[1];
+            socket.emit("process_audio", { audio_data: base64Audio });
+          };
+        };
+
+        mediaRecorder.start();
+        isRecording = true;
+        updateStatus("Recording...", "recording");
+        logDebug("🎙️ Recording started");
+
+      } catch (error) {
+        logDebug(`❌ Error starting recording: ${error}`);
+      }
+    }
+
+    socket.on("audio_processed", (data) => {
+      logDebug(`✅ Received processed audio: ${data.audio_url}`);
+      document.getElementById("recognizedText").textContent = data.text;
+      document.getElementById("intent").textContent = data.intent || "Unknown";
+      
+      // Add visual feedback for object detection
+      if (data.intent === "Object Detection") {
+        logDebug("🔍 Object Detection mode activated");
+        document.getElementById("intent").style.backgroundColor = "rgba(0, 206, 201, 0.15)";
+        
+        // Log whether image was processed
+        if (data.image_processed) {
+          logDebug("✅ Image successfully processed");
+        } else {
+          logDebug("❌ Image processing failed");
+        }
+      } else {
+        document.getElementById("intent").style.backgroundColor = "rgba(108, 92, 231, 0.15)";
+      }
+      
+      playAudio(data.audio_url);
+
+      // Re-enable speech recognition after processing the audio
+      recognition.start();
+      logDebug("🎤 Voice recognition restarted");
+    });
+
+    socket.on("text_processed", (data) => {
+      logDebug(`✅ Processed text: ${data.text}`);
+      document.getElementById("recognizedText").textContent = data.text;
+      playAudio(data.audio_url);
+
+      // Re-enable speech recognition after processing the text
+      recognition.start();
+      logDebug("🎤 Voice recognition restarted");
+    });
+
+    function stopRecording() {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+        updateStatus("Processing audio...", "");
+        logDebug("⏹️ Stopped recording, processing audio...");
+
+        // Stop speech recognition temporarily while processing audio
+        recognition.stop();
+      }
+    }
+
+    socket.on("error", (data) => {
+      logDebug(`❌ Error: ${data.error}`);
+      updateStatus("Error occurred!", "error");
+    });
+
+    function playAudio(url) {
+      audioPlayer.src = url;
+      audioPlayer.hidden = false;
+      audioPlayer.play();
+    }
+
+    recognition.start();
+    logDebug("🎤 Voice recognition started");
+
+  </script>
+</body>
+</html>
