@@ -6,12 +6,12 @@ import requests
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
-import pyttsx3
 import openai
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 import torch
 import re
 import subprocess
+from dotenv import load_dotenv
 
 # ---------------------------
 # Auto-detect ngrok public URL
@@ -44,15 +44,10 @@ app = Flask(__name__, static_folder="static")
 CORS(app, resources={r"/*": {"origins": "*"}})
 socketio = SocketIO(app, cors_allowed_origins="*")
 
-# ---------------------------
-# Initialize pyttsx3 for speech synthesis
-# ---------------------------
-engine = pyttsx3.init()
-engine.setProperty("rate", 150)
-engine.setProperty("volume", 1.0)
 
 # Ensure required directories exist
 os.makedirs("static/audio", exist_ok=True)
+
 
 # ---------------------------
 # Load the Intent Classifier Model
@@ -62,10 +57,6 @@ tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 model = AutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
 model.eval()
 
-# Load the OpenAI API key
-import openai
-import os
-from dotenv import load_dotenv
 
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
