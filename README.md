@@ -43,12 +43,13 @@ The following workflow outlines the process VoxVision follows:
    ```sh
    git clone https://github.com/yourusername/VoxVision.git
    cd VoxVision
+   git lfs pull
    ```
 2. Install dependencies:
    ```sh
    pip install -r requirements.txt
    ```
-3. Configure API keys for OpenAI services.
+3. Add a .env file with the API key
 4. Setup your esp-32 camera and change the url in chatting.py
 5. Run ngrok and change the ngrok link in index.html
 6. Run the application:
@@ -59,4 +60,4 @@ The following workflow outlines the process VoxVision follows:
    ```sh
    python chatting.py
    ```
-7. Open the ngrok url in your browser
+8. Open the ngrok url in your browser
