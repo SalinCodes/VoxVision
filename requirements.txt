@@ -1,0 +1,12 @@
+Flask
+flask-cors
+flask-socketio
+requests
+openai
+python-dotenv
+opencv-python
+Pillow
+torch
+transformers
+pyttsx3
+ngrok
