@@ -42,21 +42,20 @@ The following workflow outlines the process VoxVision follows:
 1. Clone the repository:
    ```sh
    git clone https://github.com/yourusername/VoxVision.git
-   cd VoxVision
-   git lfs pull
    ```
 2. Install dependencies:
    ```sh
    pip install -r requirements.txt
    ```
-3. Add a .env file with the API key
-4. Setup your esp-32 camera and change the url in chatting.py
-5. Run ngrok and change the ngrok link in index.html
-6. Run the application:
+3. Go inside the folder codes and run all the modules from the notebook intent_classification_training.ipynb
+4. Add a .env file with the API key
+5. Setup your esp-32 camera and change the url in chatting.py
+6. Run ngrok and change the ngrok link in index.html
+7. Run the application:
    ```sh
    python main.py
    ```
-7.  Run the application:
+8.  Run the application:
    ```sh
    python chatting.py
    ```
